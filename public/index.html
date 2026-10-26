@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Class Time — WhatsApp AI Lead Follow-up Portal</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .wa-chat-bg {
+      background-color: #efeae2;
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Toast Notification -->
+  <div id="toastBox" class="fixed bottom-5 right-5 z-50 hidden transition-all duration-300 max-w-sm bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-3">
+    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+    <span id="toastText" class="text-sm font-medium">Action completed</span>
+  </div>
+
+  <!-- Admin Login Overlay Modal (Toggled via "Test Login Screen" button) -->
+  <div id="loginModal" class="fixed inset-0 z-40 hidden bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
+            WA
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Admin Portal Login</h2>
+            <p class="text-xs text-slate-500">Sign in to manage leads & WhatsApp automation</p>
+          </div>
+        </div>
+        <span class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full">Secure Portal</span>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label for="loginEmailInput" class="block text-xs font-semibold text-slate-700 mb-1">Admin Email</label>
+          <input id="loginEmailInput" type="email" value="admin@theclasstime.com" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div>
+          <label for="loginPassInput" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+          <input id="loginPassInput" type="password" value="admin123" required class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+          <strong>Default Demo Credentials:</strong><br>
+          Email: <code>admin@theclasstime.com</code> | Password: <code>admin123</code>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button type="submit" id="btnSubmitLogin" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">
+            Sign In to Dashboard
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-inner font-bold text-lg">
+          WA
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold leading-tight">The Class Time — Lead Follow-up Cloud</h1>
+            <span id="apiStatusHeaderBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30">
+              Sandbox Mode
+            </span>
+          </div>
+          <p class="text-xs text-emerald-200">Interactive Button Campaigns, Live CRM & Cloud API Manager</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Login Button -->
+      <div class="flex flex-wrap items-center gap-2">
+        <nav class="flex flex-wrap items-center gap-1 bg-emerald-900/60 p-1 rounded-xl">
+          <button type="button" id="tabBtnDashboard" data-tab="dashboard" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-white text-emerald-900 shadow-sm transition">
+            1. Leads Dashboard
+          </button>
+          <button type="button" id="tabBtnBuilder" data-tab="builder" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-100 hover:bg-emerald-700/50 transition">
+            2. Button Flow Setup
+          </button>
+          <button type="button" id="tabBtnSimulator" data-tab="simulator" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-100 hover:bg-emerald-700/50 transition">
+            3. Live WhatsApp Demo
+          </button>
+          <button type="button" id="tabBtnCode" data-tab="code" class="nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-100 hover:bg-emerald-700/50 transition">
+            4. API Connect & Code
+          </button>
+        </nav>
+
+        <button type="button" id="btnToggleLogin" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-950/70 hover:bg-emerald-950 text-emerald-200 border border-emerald-700 transition">
+          Lock / Test Login
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- TAB 1: LEADS & CAMPAIGN DASHBOARD -->
+    <section id="viewDashboard" class="space-y-6">
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <p class="text-xs font-medium text-slate-500 uppercase">Total Leads</p>
+          <p id="statTotal" class="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">0</p>
+          <p class="text-xs text-slate-500 mt-1">Active in CRM list</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <p class="text-xs font-medium text-blue-600 uppercase">Messages Sent</p>
+          <p id="statSent" class="text-2xl sm:text-3xl font-bold text-blue-700 mt-1">0</p>
+          <p class="text-xs text-slate-500 mt-1">Awaiting button tap</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <p class="text-xs font-medium text-emerald-600 uppercase">Button Replies</p>
+          <p id="statReplied" class="text-2xl sm:text-3xl font-bold text-emerald-700 mt-1">0</p>
+          <p class="text-xs text-slate-500 mt-1">Lead selected an option</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <p class="text-xs font-medium text-amber-600 uppercase">Pending Follow-up</p>
+          <p id="statPending" class="text-2xl sm:text-3xl font-bold text-amber-600 mt-1">0</p>
+          <p class="text-xs text-slate-500 mt-1">Ready for 1st outreach</p>
+        </div>
+      </div>
+
+      <!-- Add Lead & Bulk Action Bar -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Lead Follow-up Control Panel</h2>
+            <p class="text-xs text-slate-500">Add new leads below or trigger bulk WhatsApp interactive button messages to all pending leads in one click.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" id="btnBulkSend" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition">
+              Send Follow-up to All Pending Leads
+            </button>
+            <button type="button" id="btnResetDemo" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium rounded-xl transition">
+              Reset Demo Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Lead Form -->
+        <form id="addLeadForm" class="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1">
+          <div>
+            <label for="inputLeadName" class="block text-xs font-medium text-slate-600 mb-1">Lead Full Name</label>
+            <input id="inputLeadName" type="text" required placeholder="e.g. Amit Patel" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label for="inputLeadPhone" class="block text-xs font-medium text-slate-600 mb-1">WhatsApp Number (with country code)</label>
+            <input id="inputLeadPhone" type="text" required placeholder="919826012345" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label for="inputLeadSource" class="block text-xs font-medium text-slate-600 mb-1">Lead Source</label>
+            <select id="inputLeadSource" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="Facebook Ad">Facebook Ad</option>
+              <option value="Instagram Lead">Instagram Lead</option>
+              <option value="Website Form">Website Form</option>
+              <option value="Google Sheet">Google Sheet</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" id="btnAddLeadSubmit" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition">
+              + Add New Lead
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filter & Leads Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase">Filter:</span>
+            <button type="button" data-filter="ALL" class="filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white">All Leads</button>
+            <button type="button" data-filter="Pending" class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">Pending</button>
+            <button type="button" data-filter="Sent" class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">Sent</button>
+            <button type="button" data-filter="Replied" class="filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200">Replied</button>
+          </div>
+          <div class="w-full sm:w-64">
+            <input id="searchLeadInput" type="text" placeholder="Search by name or phone..." class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                <th class="py-3 px-4 font-semibold">Lead Name</th>
+                <th class="py-3 px-4 font-semibold">WhatsApp Number</th>
+                <th class="py-3 px-4 font-semibold">Source</th>
+                <th class="py-3 px-4 font-semibold">Status</th>
+                <th class="py-3 px-4 font-semibold">Selected Option (Reply)</th>
+                <th class="py-3 px-4 font-semibold text-right">Follow-up Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody" class="divide-y divide-slate-100 text-sm">
+              <!-- Populated dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BUTTON & MESSAGE FLOW BUILDER -->
+    <section id="viewBuilder" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900">Configure Follow-up Messages & Main Reply Buttons</h2>
+            <p class="text-xs text-slate-500">Customize the message body and the 3 interactive WhatsApp buttons your leads will see and tap.</p>
+          </div>
+          <button type="button" id="btnSaveFlow" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition shrink-0">
+            Save Flow & Preview in Simulator
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label for="cfgBusinessName" class="block text-xs font-semibold text-slate-700 mb-1">Business / Brand Header Name</label>
+            <input id="cfgBusinessName" type="text" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-900">
+            <strong>Personalization Tip:</strong> Use <code>{{name}}</code> inside your message text and the software will automatically insert each lead's actual name.
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label for="cfgIntroMsg" class="block text-xs font-semibold text-slate-700 mb-1">1st Follow-up Message (Initial Drop)</label>
+            <textarea id="cfgIntroMsg" rows="3" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <div>
+            <label for="cfgFollowupMsg" class="block text-xs font-semibold text-slate-700 mb-1">24-Hour Automated Reminder Message (If No Reply)</label>
+            <textarea id="cfgFollowupMsg" rows="3" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+        </div>
+
+        <!-- 3 Interactive Options -->
+        <div class="pt-2">
+          <h3 class="text-sm font-bold text-slate-800 mb-3">3 Main Interactive Buttons & Instant Auto-Replies:</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Option 1 -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">Button 1 (Option 1)</span>
+                <span class="text-[11px] text-slate-400">Max 20 chars</span>
+              </div>
+              <div>
+                <label for="cfgOpt1Title" class="block text-xs font-medium text-slate-600 mb-1">Button Label</label>
+                <input id="cfgOpt1Title" type="text" maxlength="20" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">
+              </div>
+              <div>
+                <label for="cfgOpt1Reply" class="block text-xs font-medium text-slate-600 mb-1">Instant Auto-Reply When Tapped</label>
+                <textarea id="cfgOpt1Reply" rows="3" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white"></textarea>
+              </div>
+            </div>
+
+            <!-- Option 2 -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">Button 2 (Option 2)</span>
+                <span class="text-[11px] text-slate-400">Max 20 chars</span>
+              </div>
+              <div>
+                <label for="cfgOpt2Title" class="block text-xs font-medium text-slate-600 mb-1">Button Label</label>
+                <input id="cfgOpt2Title" type="text" maxlength="20" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">
+              </div>
+              <div>
+                <label for="cfgOpt2Reply" class="block text-xs font-medium text-slate-600 mb-1">Instant Auto-Reply When Tapped</label>
+                <textarea id="cfgOpt2Reply" rows="3" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white"></textarea>
+              </div>
+            </div>
+
+            <!-- Option 3 -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">Button 3 (Option 3)</span>
+                <span class="text-[11px] text-slate-400">Max 20 chars</span>
+              </div>
+              <div>
+                <label for="cfgOpt3Title" class="block text-xs font-medium text-slate-600 mb-1">Button Label</label>
+                <input id="cfgOpt3Title" type="text" maxlength="20" class="w-full px-3 py-1.5 text-sm border border-slate-300 rounded-lg bg-white">
+              </div>
+              <div>
+                <label for="cfgOpt3Reply" class="block text-xs font-medium text-slate-600 mb-1">Instant Auto-Reply When Tapped</label>
+                <textarea id="cfgOpt3Reply" rows="3" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: LIVE WHATSAPP SIMULATOR -->
+    <section id="viewSimulator" class="hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left Controls Panel -->
+        <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Interactive Phone Preview</span>
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 mt-2">Test Customer Experience Live</h2>
+            <p class="text-xs text-slate-500 mt-1">Select a lead below, drop a follow-up message, and tap any of the 3 reply buttons on the phone screen on the right to see the auto-reply and CRM update.</p>
+          </div>
+
+          <div>
+            <label for="simLeadSelect" class="block text-xs font-semibold text-slate-700 mb-1.5">Select Lead to Test:</label>
+            <select id="simLeadSelect" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"></select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button type="button" id="btnSimSendIntro" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition">
+              1. Drop Initial Message
+            </button>
+            <button type="button" id="btnSimSendReminder" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition">
+              2. Drop 24h Reminder
+            </button>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+            <p class="font-bold text-slate-700">Live CRM Status for Selected Lead:</p>
+            <div class="flex items-center justify-between py-1 border-b border-slate-200/70">
+              <span class="text-slate-500">Current Stage:</span>
+              <span id="simStatusBadge" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="flex items-center justify-between py-1">
+              <span class="text-slate-500">Option Clicked by Lead:</span>
+              <span id="simSelectedOption" class="font-bold text-emerald-700">-</span>
+            </div>
+          </div>
+
+          <button type="button" id="btnClearChat" class="w-full py-2 text-xs font-medium text-slate-500 hover:text-slate-800 border border-slate-200 rounded-xl transition">
+            Clear Simulator Chat History
+          </button>
+        </div>
+
+        <!-- Right Phone Mockup -->
+        <div class="lg:col-span-7 flex justify-center">
+          <div class="w-full max-w-md bg-slate-900 rounded-[32px] p-3 shadow-2xl border-4 border-slate-800">
+            <!-- Phone Screen -->
+            <div class="bg-white rounded-[24px] overflow-hidden flex flex-col h-[540px]">
+              <!-- WhatsApp Top Bar -->
+              <div class="bg-[#075E54] text-white px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-sm">
+                    AI
+                  </div>
+                  <div>
+                    <p id="waHeaderTitle" class="text-sm font-bold leading-tight">The Class Time</p>
+                    <p class="text-[11px] text-emerald-200">Official Business Account • Online</p>
+                  </div>
+                </div>
+                <span class="text-[10px] bg-emerald-900/60 px-2 py-0.5 rounded text-emerald-100">Verified API</span>
+              </div>
+
+              <!-- Chat Messages Area -->
+              <div id="waChatContainer" class="flex-1 wa-chat-bg p-4 overflow-y-auto custom-scroll space-y-3">
+                <!-- Populated dynamically -->
+              </div>
+
+              <!-- Bottom Bar Info -->
+              <div class="bg-[#f0f2f5] px-3 py-2.5 border-t border-slate-200 flex items-center gap-2">
+                <input id="simCustomInput" type="text" placeholder="Or type a custom customer reply..." class="flex-1 px-3.5 py-2 text-xs bg-white rounded-full border border-slate-300 focus:outline-none focus:border-emerald-600">
+                <button type="button" id="btnSimSendCustom" class="px-3.5 py-2 bg-[#075E54] hover:bg-emerald-800 text-white text-xs font-semibold rounded-full transition">
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: WHATSAPP API CONNECTION & FULL SOURCE CODE -->
+    <section id="viewCode" class="hidden space-y-6">
+      <!-- Direct API Connection Card -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Meta Cloud API Integration</span>
+            <h2 class="text-lg font-bold text-slate-900 mt-2">Connect Your Official WhatsApp Business API</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Paste your Meta Developer credentials below to switch from Sandbox Mode to Live WhatsApp Messaging.</p>
+          </div>
+          <button type="button" id="btnSaveApiCreds" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">
+            Save & Connect WhatsApp API
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="apiPhoneIdInput" class="block text-xs font-semibold text-slate-700 mb-1">WhatsApp Phone Number ID</label>
+            <input id="apiPhoneIdInput" type="text" placeholder="e.g. 102938475610293" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label for="apiTokenInput" class="block text-xs font-semibold text-slate-700 mb-1">Permanent Access Token</label>
+            <input id="apiTokenInput" type="password" placeholder="EAAGm0PX4ZCpsBA..." class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label for="apiVerifyTokenInput" class="block text-xs font-semibold text-slate-700 mb-1">Webhook Verify Token</label>
+            <input id="apiVerifyTokenInput" type="text" value="my_secret_verify_token_123" class="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-xl font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Ready-to-Copy Backend Code Viewer -->
+      <div class="bg-slate-900 text-slate-100 rounded-2xl shadow-lg overflow-hidden border border-slate-800">
+        <div class="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" data-codefile="server" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white">
+              server.js (Node.js Backend)
+            </button>
+            <button type="button" data-codefile="payload" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800">
+              whatsapp_payload.json (API Payload)
+            </button>
+            <button type="button" data-codefile="env" class="code-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800">
+              .env (Environment Variables)
+            </button>
+          </div>
+          <button type="button" id="btnCopyCode" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-lg text-xs font-semibold transition">
+            Copy Code
+          </button>
+        </div>
+        <pre id="codeDisplayArea" class="p-5 text-xs font-mono text-emerald-300 overflow-x-auto max-h-[460px] custom-scroll leading-relaxed"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Default English State
+    const DEFAULT_CONFIG = {
+      businessName: 'The Class Time',
+      introMessage: 'Hi {{name}}! 👋 Welcome to The Class Time. Thanks for your inquiry! Please tap one of the main options below so we can assist you right away:',
+      followupMessage: 'Hi {{name}}, this is a quick follow-up from The Class Time. Would you still like details about our classes and plans? Tap an option below:',
+      options: [
+        {
+          id: 'opt_1',
+          title: '1. Course & Fees',
+          autoReply: 'Thank you for your interest in The Class Time! Our team is sharing the complete course & fee details with you right away.'
+        },
+        {
+          id: 'opt_2',
+          title: '2. Request Callback',
+          autoReply: 'Great! A counselor from The Class Time will call you within the next 30 minutes. You can also reply with your preferred time.'
+        },
+        {
+          id: 'opt_3',
+          title: '3. Not Interested',
+          autoReply: 'No problem at all! Thank you for your time. Feel free to reach out anytime in the future if you need help.'
+        }
+      ]
+    };
+
+    const DEFAULT_LEADS = [
+      { id: 'L101', name: 'Rahul Sharma', phone: '919826011223', source: 'Facebook Ad', status: 'Pending', selectedOption: '-' },
+      { id: 'L102', name: 'Priya Verma', phone: '919811223344', source: 'Instagram Lead', status: 'Sent', selectedOption: '-' },
+      { id: 'L103', name: 'Vikram Gupta', phone: '919988776655', source: 'Website Form', status: 'Replied', selectedOption: '1. Course & Fees' },
+      { id: 'L104', name: 'Neha Agarwal', phone: '919755443322', source: 'Google Sheet', status: 'Pending', selectedOption: '-' }
+    ];
+
+    let appConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    let leadsList = JSON.parse(JSON.stringify(DEFAULT_LEADS));
+    let apiCreds = { phoneId: '', token: '', verifyToken: 'my_secret_verify_token_123' };
+    let currentFilter = 'ALL';
+    let currentSearch = '';
+    let activeSimLeadId = 'L101';
+    let activeCodeTab = 'server';
+    let simMessages = {};
+
+    function loadSavedState() {
+      try {
+        const savedCfg = localStorage.getItem('wa_lead_cfg_theclasstime_v3');
+        const savedLeads = localStorage.getItem('wa_lead_list_theclasstime_v3');
+        if (savedCfg) appConfig = JSON.parse(savedCfg);
+        if (savedLeads) leadsList = JSON.parse(savedLeads);
+      } catch (e) {
+        // Ignore storage errors in sandboxed iframes
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('wa_lead_cfg_theclasstime_v3', JSON.stringify(appConfig));
+        localStorage.setItem('wa_lead_list_theclasstime_v3', JSON.stringify(leadsList));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      const txt = document.getElementById('toastText');
+      txt.textContent = msg;
+      box.classList.remove('hidden');
+      setTimeout(() => {
+        box.classList.add('hidden');
+      }, 3200);
+    }
+
+    function switchTab(tabName) {
+      const views = {
+        dashboard: document.getElementById('viewDashboard'),
+        builder: document.getElementById('viewBuilder'),
+        simulator: document.getElementById('viewSimulator'),
+        code: document.getElementById('viewCode')
+      };
+      Object.keys(views).forEach(k => {
+        if (k === tabName) {
+          views[k].classList.remove('hidden');
+        } else {
+          views[k].classList.add('hidden');
+        }
+      });
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabName) {
+          btn.className = 'nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-white text-emerald-900 shadow-sm transition';
+        } else {
+          btn.className = 'nav-tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-emerald-100 hover:bg-emerald-700/50 transition';
+        }
+      });
+
+      if (tabName === 'simulator') {
+        renderSimulatorView();
+      } else if (tabName === 'code') {
+        renderCodeBlock();
+      }
+    }
+
+    function renderDashboard() {
+      const total = leadsList.length;
+      const sent = leadsList.filter(l => l.status === 'Sent' || l.status === 'Reminder Sent').length;
+      const replied = leadsList.filter(l => l.status === 'Replied').length;
+      const pending = leadsList.filter(l => l.status === 'Pending').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statSent').textContent = sent;
+      document.getElementById('statReplied').textContent = replied;
+      document.getElementById('statPending').textContent = pending;
+
+      const tbody = document.getElementById('leadsTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = leadsList.filter(item => {
+        const matchStatus = currentFilter === 'ALL' || item.status === currentFilter || (currentFilter === 'Sent' && item.status === 'Reminder Sent');
+        const q = currentSearch.trim().toLowerCase();
+        const matchSearch = !q || item.name.toLowerCase().includes(q) || item.phone.toLowerCase().includes(q);
+        return matchStatus && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="6" class="py-8 text-center text-slate-400 text-xs">No matching leads found.</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach(lead => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/80 transition';
+
+        let badgeClass = 'bg-amber-100 text-amber-800';
+        if (lead.status === 'Sent') badgeClass = 'bg-blue-100 text-blue-800';
+        if (lead.status === 'Reminder Sent') badgeClass = 'bg-purple-100 text-purple-800';
+        if (lead.status === 'Replied') badgeClass = 'bg-emerald-100 text-emerald-800';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-semibold text-slate-900">${lead.name}</td>
+          <td class="py-3 px-4 text-slate-600 font-mono text-xs">+${lead.phone}</td>
+          <td class="py-3 px-4 text-slate-500 text-xs">${lead.source}</td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeClass}">${lead.status}</span>
+          </td>
+          <td class="py-3 px-4 font-medium text-emerald-700 text-xs">${lead.selectedOption}</td>
+          <td class="py-3 px-4 text-right space-x-1.5">
+            <button type="button" data-action="send-intro" data-id="${lead.id}" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition">
+              Drop Message
+            </button>
+            <button type="button" data-action="open-sim" data-id="${lead.id}" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition">
+              Open Live Chat
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function populateBuilderForm() {
+      document.getElementById('cfgBusinessName').value = appConfig.businessName;
+      document.getElementById('cfgIntroMsg').value = appConfig.introMessage;
+      document.getElementById('cfgFollowupMsg').value = appConfig.followupMessage;
+
+      document.getElementById('cfgOpt1Title').value = appConfig.options[0].title;
+      document.getElementById('cfgOpt1Reply').value = appConfig.options[0].autoReply;
+
+      document.getElementById('cfgOpt2Title').value = appConfig.options[1].title;
+      document.getElementById('cfgOpt2Reply').value = appConfig.options[1].autoReply;
+
+      document.getElementById('cfgOpt3Title').value = appConfig.options[2].title;
+      document.getElementById('cfgOpt3Reply').value = appConfig.options[2].autoReply;
+    }
+
+    function ensureLeadChatInitialized(leadId) {
+      if (!simMessages[leadId]) {
+        simMessages[leadId] = [];
+      }
+    }
+
+    function triggerInteractiveMessageToLead(leadId, isReminder) {
+      const lead = leadsList.find(l => l.id === leadId);
+      if (!lead) return;
+      ensureLeadChatInitialized(leadId);
+
+      const rawText = isReminder ? appConfig.followupMessage : appConfig.introMessage;
+      const bodyText = rawText.replace(/\{\{name\}\}/g, lead.name);
+
+      simMessages[leadId].push({
+        sender: 'bot_interactive',
+        header: appConfig.businessName,
+        text: bodyText,
+        options: JSON.parse(JSON.stringify(appConfig.options)),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      lead.status = isReminder ? 'Reminder Sent' : 'Sent';
+      saveState();
+      renderDashboard();
+      renderSimulatorView();
+    }
+
+    function handleCustomerButtonTap(leadId, optionId) {
+      const lead = leadsList.find(l => l.id === leadId);
+      const opt = appConfig.options.find(o => o.id === optionId);
+      if (!lead || !opt) return;
+
+      ensureLeadChatInitialized(leadId);
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      simMessages[leadId].push({
+        sender: 'customer',
+        text: opt.title,
+        time: nowTime
+      });
+
+      lead.status = 'Replied';
+      lead.selectedOption = opt.title;
+
+      simMessages[leadId].push({
+        sender: 'bot_text',
+        text: opt.autoReply,
+        time: nowTime
+      });
+
+      saveState();
+      renderDashboard();
+      renderSimulatorView();
+      showToast(`Reply "${opt.title}" from ${lead.name} saved to CRM!`);
+    }
+
+    function renderSimulatorView() {
+      const selectEl = document.getElementById('simLeadSelect');
+      selectEl.innerHTML = '';
+      leadsList.forEach(lead => {
+        const opt = document.createElement('option');
+        opt.value = lead.id;
+        opt.textContent = `${lead.name} (+${lead.phone}) - [${lead.status}]`;
+        if (lead.id === activeSimLeadId) opt.selected = true;
+        selectEl.appendChild(opt);
+      });
+
+      const currentLead = leadsList.find(l => l.id === activeSimLeadId) || leadsList[0];
+      if (!currentLead) return;
+      activeSimLeadId = currentLead.id;
+
+      document.getElementById('waHeaderTitle').textContent = appConfig.businessName;
+      document.getElementById('simStatusBadge').textContent = currentLead.status;
+      document.getElementById('simSelectedOption').textContent = currentLead.selectedOption;
+
+      ensureLeadChatInitialized(activeSimLeadId);
+      const chatBox = document.getElementById('waChatContainer');
+      chatBox.innerHTML = '';
+
+      const msgs = simMessages[activeSimLeadId];
+      if (msgs.length === 0) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'bg-white/90 rounded-xl p-4 text-center text-xs text-slate-600 shadow-sm my-8';
+        emptyDiv.innerHTML = `<p class="font-semibold text-slate-800 mb-1">No messages yet</p><p>Click <strong>"1. Drop Initial Message"</strong> on the left panel to see how ${currentLead.name} receives your interactive button message.</p>`;
+        chatBox.appendChild(emptyDiv);
+        return;
+      }
+
+      msgs.forEach(m => {
+        if (m.sender === 'bot_interactive') {
+          const wrap = document.createElement('div');
+          wrap.className = 'max-w-[88%] mr-auto space-y-1';
+
+          let buttonsHtml = '';
+          m.options.forEach(o => {
+            buttonsHtml += `
+              <button type="button" data-sim-opt="${o.id}" class="w-full py-2 px-3 bg-white hover:bg-emerald-50 text-[#00a884] font-semibold text-xs rounded-lg shadow-sm border border-slate-200 flex items-center justify-center gap-1.5 transition">
+                <span>↩</span> <span>${o.title}</span>
+              </button>
+            `;
+          });
+
+          wrap.innerHTML = `
+            <div class="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm border border-slate-200/80">
+              <p class="text-xs font-bold text-slate-900 mb-1">${m.header}</p>
+              <p class="text-xs text-slate-800 whitespace-pre-line leading-relaxed">${m.text}</p>
+              <div class="flex items-center justify-between mt-1.5">
+                <span class="text-[10px] text-slate-400">Tap an option below to reply 👇</span>
+                <span class="text-[10px] text-slate-400">${m.time}</span>
+              </div>
+            </div>
+            <div class="space-y-1 pt-0.5">
+              ${buttonsHtml}
+            </div>
+          `;
+          chatBox.appendChild(wrap);
+        } else if (m.sender === 'customer') {
+          const bubble = document.createElement('div');
+          bubble.className = 'max-w-[80%] ml-auto bg-[#d9fdd3] text-slate-900 rounded-2xl rounded-tr-none px-3.5 py-2 shadow-sm';
+          bubble.innerHTML = `
+            <p class="text-xs font-medium">${m.text}</p>
+            <p class="text-[10px] text-slate-500 text-right mt-0.5">${m.time} ✓✓</p>
+          `;
+          chatBox.appendChild(bubble);
+        } else if (m.sender === 'bot_text') {
+          const bubble = document.createElement('div');
+          bubble.className = 'max-w-[85%] mr-auto bg-white text-slate-900 rounded-2xl rounded-tl-none px-3.5 py-2.5 shadow-sm border border-slate-200/80';
+          bubble.innerHTML = `
+            <p class="text-[11px] font-bold text-emerald-700 mb-0.5">AI Auto-Followup Bot</p>
+            <p class="text-xs text-slate-800 leading-relaxed">${m.text}</p>
+            <p class="text-[10px] text-slate-400 text-right mt-1">${m.time}</p>
+          `;
+          chatBox.appendChild(bubble);
+        }
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function renderCodeBlock() {
+      const codeArea = document.getElementById('codeDisplayArea');
+      if (activeCodeTab === 'payload') {
+        const samplePayload = {
+          messaging_product: 'whatsapp',
+          recipient_type: 'individual',
+          to: '919826011223',
+          type: 'interactive',
+          interactive: {
+            type: 'button',
+            header: { type: 'text', text: appConfig.businessName },
+            body: { text: appConfig.introMessage.replace('{{name}}', 'Rahul Sharma') },
+            footer: { text: 'Tap an option below to reply 👇' },
+            action: {
+              buttons: appConfig.options.map(o => ({
+                type: 'reply',
+                reply: { id: o.id, title: o.title }
+              }))
+            }
+          }
+        };
+        codeArea.textContent = JSON.stringify(samplePayload, null, 2);
+      } else if (activeCodeTab === 'env') {
+        codeArea.textContent = `PORT=3000\n# Meta Developer Portal (developers.facebook.com) credentials:\nWHATSAPP_TOKEN=${apiCreds.token || 'EAAGm0PX4ZCpsBA_paste_your_permanent_token_here'}\nPHONE_NUMBER_ID=${apiCreds.phoneId || '102938475610293'}\nWEBHOOK_VERIFY_TOKEN=${apiCreds.verifyToken || 'my_secret_verify_token_123'}\nADMIN_EMAIL=admin@theclasstime.com\nADMIN_PASSWORD=admin123`;
+      } else {
+        codeArea.textContent = `// server.js - Complete Node.js WhatsApp Button Follow-up Automation\nrequire('dotenv').config();\nconst express = require('express');\nconst axios = require('axios');\nconst app = express();\napp.use(express.json());\n\nconst WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;\nconst PHONE_NUMBER_ID = process.env.PHONE_NUMBER_ID;\n\nconst botFlowConfig = ${JSON.stringify(appConfig, null, 2)};\n\n// 1. Send Interactive Reply Button Message to Lead\nasync function sendLeadFollowup(toPhone, leadName) {\n  const payload = {\n    messaging_product: 'whatsapp',\n    to: toPhone,\n    type: 'interactive',\n    interactive: {\n      type: 'button',\n      header: { type: 'text', text: botFlowConfig.businessName },\n      body: { text: botFlowConfig.introMessage.replace('{{name}}', leadName) },\n      footer: { text: 'Tap an option below to reply 👇' },\n      action: {\n        buttons: botFlowConfig.options.map(opt => ({\n          type: 'reply',\n          reply: { id: opt.id, title: opt.title.substring(0, 20) }\n        }))\n      }\n    }\n  };\n\n  await axios.post(\`https://graph.facebook.com/v20.0/\${PHONE_NUMBER_ID}/messages\`, payload, {\n    headers: { Authorization: \`Bearer \${WHATSAPP_TOKEN}\` }\n  });\n}\n\n// 2. Receive Customer Button Click via Webhook & Send Instant Auto-Reply\napp.post('/webhook', async (req, res) => {\n  const message = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];\n  if (message?.type === 'interactive' && message.interactive?.type === 'button_reply') {\n    const fromPhone = message.from;\n    const clickedId = message.interactive.button_reply.id;\n    const matched = botFlowConfig.options.find(o => o.id === clickedId);\n\n    if (matched) {\n      await axios.post(\`https://graph.facebook.com/v20.0/\${PHONE_NUMBER_ID}/messages\`, {\n        messaging_product: 'whatsapp',\n        to: fromPhone,\n        type: 'text',\n        text: { body: matched.autoReply }\n      }, { headers: { Authorization: \`Bearer \${WHATSAPP_TOKEN}\` } });\n    }\n  }\n  res.sendStatus(200);\n});\n\napp.listen(process.env.PORT || 3000, () => console.log('Server running on port 3000'));`;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedState();
+      populateBuilderForm();
+      triggerInteractiveMessageToLead('L102', false);
+      renderDashboard();
+
+      // Login Modal Toggle & Submit
+      const loginModal = document.getElementById('loginModal');
+      document.getElementById('btnToggleLogin').addEventListener('click', () => {
+        loginModal.classList.remove('hidden');
+      });
+
+      document.getElementById('loginForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmailInput').value.trim();
+        loginModal.classList.add('hidden');
+        showToast(`Logged in as ${email}`);
+      });
+
+      // Save API Credentials inside UI
+      document.getElementById('btnSaveApiCreds').addEventListener('click', () => {
+        const phoneId = document.getElementById('apiPhoneIdInput').value.trim();
+        const token = document.getElementById('apiTokenInput').value.trim();
+        const verifyToken = document.getElementById('apiVerifyTokenInput').value.trim();
+
+        apiCreds = { phoneId, token, verifyToken };
+        const badge = document.getElementById('apiStatusHeaderBadge');
+        if (phoneId && token) {
+          badge.textContent = 'Live Cloud API Connected';
+          badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-100 border border-emerald-300/40';
+          showToast('WhatsApp Cloud API credentials saved & connected!');
+        } else {
+          badge.textContent = 'Sandbox Mode';
+          badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/30';
+          showToast('Saved! Add Phone ID & Token to switch from Sandbox to Live mode.');
+        }
+        renderCodeBlock();
+      });
+
+      // Nav tabs
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchTab(btn.getAttribute('data-tab'));
+        });
+      });
+
+      // Add New Lead
+      document.getElementById('addLeadForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const nameEl = document.getElementById('inputLeadName');
+        const phoneEl = document.getElementById('inputLeadPhone');
+        const sourceEl = document.getElementById('inputLeadSource');
+
+        const newLead = {
+          id: 'L' + Math.floor(1000 + Math.random() * 9000),
+          name: nameEl.value.trim(),
+          phone: phoneEl.value.replace(/[^0-9]/g, ''),
+          source: sourceEl.value,
+          status: 'Pending',
+          selectedOption: '-'
+        };
+        leadsList.unshift(newLead);
+        activeSimLeadId = newLead.id;
+        saveState();
+        renderDashboard();
+        nameEl.value = '';
+        phoneEl.value = '';
+        showToast(`New lead "${newLead.name}" added to CRM!`);
+      });
+
+      // Bulk Send to Pending Leads
+      document.getElementById('btnBulkSend').addEventListener('click', () => {
+        const pendingLeads = leadsList.filter(l => l.status === 'Pending');
+        if (pendingLeads.length === 0) {
+          showToast('No pending leads available right now!');
+          return;
+        }
+        pendingLeads.forEach(l => {
+          triggerInteractiveMessageToLead(l.id, false);
+        });
+        activeSimLeadId = pendingLeads[0].id;
+        showToast(`Sent interactive follow-up to ${pendingLeads.length} pending leads!`);
+        switchTab('simulator');
+      });
+
+      // Reset Demo Data
+      document.getElementById('btnResetDemo').addEventListener('click', () => {
+        appConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        leadsList = JSON.parse(JSON.stringify(DEFAULT_LEADS));
+        simMessages = {};
+        saveState();
+        populateBuilderForm();
+        triggerInteractiveMessageToLead('L102', false);
+        renderDashboard();
+        showToast('Demo data reset to defaults!');
+      });
+
+      // Filter buttons
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentFilter = btn.getAttribute('data-filter');
+          document.querySelectorAll('.filter-btn').forEach(b => {
+            b.className = 'filter-btn px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200';
+          });
+          btn.className = 'filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+          renderDashboard();
+        });
+      });
+
+      // Search input
+      document.getElementById('searchLeadInput').addEventListener('input', e => {
+        currentSearch = e.target.value;
+        renderDashboard();
+      });
+
+      // Table Row Actions Delegation
+      document.getElementById('leadsTableBody').addEventListener('click', e => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const action = btn.getAttribute('data-action');
+        const leadId = btn.getAttribute('data-id');
+        activeSimLeadId = leadId;
+
+        if (action === 'send-intro') {
+          triggerInteractiveMessageToLead(leadId, false);
+          showToast('Follow-up message dropped! Tap a button on the phone screen to test.');
+          switchTab('simulator');
+        } else if (action === 'open-sim') {
+          switchTab('simulator');
+        }
+      });
+
+      // Save Flow Builder
+      document.getElementById('btnSaveFlow').addEventListener('click', () => {
+        appConfig.businessName = document.getElementById('cfgBusinessName').value.trim() || 'My Business';
+        appConfig.introMessage = document.getElementById('cfgIntroMsg').value.trim();
+        appConfig.followupMessage = document.getElementById('cfgFollowupMsg').value.trim();
+
+        appConfig.options[0].title = document.getElementById('cfgOpt1Title').value.trim() || 'Option 1';
+        appConfig.options[0].autoReply = document.getElementById('cfgOpt1Reply').value.trim();
+
+        appConfig.options[1].title = document.getElementById('cfgOpt2Title').value.trim() || 'Option 2';
+        appConfig.options[1].autoReply = document.getElementById('cfgOpt2Reply').value.trim();
+
+        appConfig.options[2].title = document.getElementById('cfgOpt3Title').value.trim() || 'Option 3';
+        appConfig.options[2].autoReply = document.getElementById('cfgOpt3Reply').value.trim();
+
+        saveState();
+        triggerInteractiveMessageToLead(activeSimLeadId, false);
+        showToast('Updated button flow saved! Test it in the simulator.');
+        switchTab('simulator');
+      });
+
+      // Simulator Lead Select
+      document.getElementById('simLeadSelect').addEventListener('change', e => {
+        activeSimLeadId = e.target.value;
+        renderSimulatorView();
+      });
+
+      // Simulator Trigger Buttons
+      document.getElementById('btnSimSendIntro').addEventListener('click', () => {
+        triggerInteractiveMessageToLead(activeSimLeadId, false);
+        showToast('Initial interactive message sent!');
+      });
+
+      document.getElementById('btnSimSendReminder').addEventListener('click', () => {
+        triggerInteractiveMessageToLead(activeSimLeadId, true);
+        showToast('24-hour reminder message dropped!');
+      });
+
+      document.getElementById('btnClearChat').addEventListener('click', () => {
+        simMessages[activeSimLeadId] = [];
+        renderSimulatorView();
+      });
+
+      // Interactive Button Click inside WhatsApp Phone Screen
+      document.getElementById('waChatContainer').addEventListener('click', e => {
+        const optBtn = e.target.closest('button[data-sim-opt]');
+        if (!optBtn) return;
+        const optId = optBtn.getAttribute('data-sim-opt');
+        handleCustomerButtonTap(activeSimLeadId, optId);
+      });
+
+      // Custom Customer Text Input in Simulator
+      document.getElementById('btnSimSendCustom').addEventListener('click', () => {
+        const inp = document.getElementById('simCustomInput');
+        const txt = inp.value.trim();
+        if (!txt) return;
+        ensureLeadChatInitialized(activeSimLeadId);
+        const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        simMessages[activeSimLeadId].push({ sender: 'customer', text: txt, time: nowTime });
+        simMessages[activeSimLeadId].push({
+          sender: 'bot_text',
+          text: 'Thank you for your message! Please tap one of the 3 main buttons above so we can assist you faster.',
+          time: nowTime
+        });
+        inp.value = '';
+        renderSimulatorView();
+      });
+
+      // Code Viewer Tabs
+      document.querySelectorAll('.code-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeCodeTab = btn.getAttribute('data-codefile');
+          document.querySelectorAll('.code-tab-btn').forEach(b => {
+            b.className = 'code-tab-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800';
+          });
+          btn.className = 'code-tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+          renderCodeBlock();
+        });
+      });
+
+      // Copy Code Button with fallback
+      document.getElementById('btnCopyCode').addEventListener('click', () => {
+        const codeText = document.getElementById('codeDisplayArea').textContent;
+        const fallbackCopy = () => {
+          const ta = document.createElement('textarea');
+          ta.value = codeText;
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+            showToast('Code copied to clipboard!');
+          } catch (err) {
+            showToast('Failed to copy code');
+          }
+          document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(codeText).then(() => {
+            showToast('Code copied to clipboard!');
+          }).catch(fallbackCopy);
+        } else {
+          fallbackCopy();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

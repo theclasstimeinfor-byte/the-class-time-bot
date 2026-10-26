@@ -1,0 +1,16 @@
+{
+  "name": "the-class-time-whatsapp-automation",
+  "version": "1.0.0",
+  "description": "The Class Time - WhatsApp Cloud API Interactive Button Lead Follow-up Automation Server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3"
+  }
+}
